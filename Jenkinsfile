@@ -8,8 +8,7 @@ pipeline {
     
     stages {
         stage('Git Checkout') {
-            steps {
-                echo 'Récupération du code source depuis GitHub...'
+            steps {                echo 'Récupération du code source depuis GitHub...'
                 git branch: 'main', 
                     url: 'https://github.com/oumayma-01/student-management-devops.git'
             }
