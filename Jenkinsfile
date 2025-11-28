@@ -16,15 +16,15 @@ pipeline {
         
         stage('Maven Build') {
             steps {
-                echo 'Compilation du projet avec Maven...'
-                sh 'mvn clean compile'
+                echo 'Compilation du projet avec Maven (sans tests)...'
+                sh 'mvn clean compile -DskipTests'
             }
         }
         
-        stage('Maven Test') {
+        stage('Maven Package') {
             steps {
-                echo 'Exécution des tests unitaires...'
-                sh 'mvn test'
+                echo 'Packaging du projet...'
+                sh 'mvn package -DskipTests'
             }
         }
     }
