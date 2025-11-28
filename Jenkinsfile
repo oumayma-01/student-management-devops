@@ -2,15 +2,15 @@ pipeline {
     agent any
     
     tools {
-        maven 'Maven'  // Nom de Maven configuré dans Jenkins
-        jdk 'JDK'      // Nom du JDK configuré dans Jenkins
+        maven 'Maven'
+        jdk 'JDK'
     }
     
     stages {
         stage('Git Checkout') {
-            steps {                echo 'Récupération du code source depuis GitHub...'
-                git branch: 'main', 
-                    url: 'https://github.com/oumayma-01/student-management-devops.git'
+            steps {
+                echo 'Récupération du code source depuis GitHub...'
+                checkout scm
             }
         }
         
@@ -28,3 +28,13 @@ pipeline {
             }
         }
     }
+    
+    post {
+        success {
+            echo 'Build réussi ! ✅'
+        }
+        failure {
+            echo 'Build échoué ! ❌'
+        }
+    }
+}
