@@ -1,4 +1,4 @@
-//docker push change commit test
+//docker push change commit test v1.2
 // This pipeline defines the CORE Continuous Integration (CI) process, including database interaction:
 // 1. Git Checkout
 // 2. Tool Verification
