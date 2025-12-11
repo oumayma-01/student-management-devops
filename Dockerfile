@@ -1,35 +1,31 @@
-# --- STAGE 1: Build the application (using JDK) ---
-# Use a full JDK from Eclipse Temurin for building the project
-FROM eclipse-temurin:17-jdk-focal AS build
-
-# Set the working directory inside the container
+# --- STAGE 1: BUILD (using Temurin JDK) ---
+# Use the JDK image to build the application
+FROM eclipse-temurin:17-jdk-focal AS builder
 WORKDIR /app
 
-# Copy the pom.xml file and download dependencies
-# This leverages Docker's layer caching for faster builds if pom.xml doesn't change
+# Copy Maven wrapper files and pom.xml
+COPY .mvn .mvn
+COPY mvnw .
 COPY pom.xml .
-RUN mvn dependency:go-offline
 
-# Copy the rest of the application source code
+# Copy source code (assuming src/ exists)
 COPY src ./src
 
-# Package the application into a single executable JAR file
-RUN mvn package -DskipTests
+# Build the application package. We skip tests here since they ran in the pipeline,
+# but usually they would run in this stage inside the Dockerfile.
+RUN ./mvnw clean package -DskipTests
 
-# --- STAGE 2: Create the final, minimal image (using JRE) ---
-# FIX: Using the reliable Eclipse Temurin JRE image instead of deprecated OpenJDK tags
-FROM eclipse-temurin:17-jre-focal AS final
-
-# Set the working directory for the final application
+# --- STAGE 2: FINAL (using smaller Temurin JRE) ---
+# Use the smaller JRE image for the final runtime environment
+FROM eclipse-temurin:17-jre-focal
 WORKDIR /app
 
-# Copy the built JAR file from the build stage
-# The JAR name is assumed to be 'target/student-management-0.0.1-SNAPSHOT.jar'
-# Adjust the JAR name below if your Maven build produces a different name
-COPY --from=build /app/target/*.jar app.jar
+# Copy the generated JAR from the 'builder' stage
+# The name comes from the pom.xml artifactId (student-management) and version (0.0.1-SNAPSHOT)
+COPY --from=builder /app/target/student-management-0.0.1-SNAPSHOT.jar app.jar
 
-# Expose the port the Spring Boot application runs on (default is 8080)
+# Define the port the Spring Boot app runs on
 EXPOSE 8080
 
-# The command to run the application
+# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
