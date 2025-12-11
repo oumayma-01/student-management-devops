@@ -1,17 +1,35 @@
-FROM openjdk:17-jdk-slim
+# --- STAGE 1: Build the application (using JDK) ---
+# Use a full JDK from Eclipse Temurin for building the project
+FROM eclipse-temurin:17-jdk-focal AS build
 
+# Set the working directory inside the container
 WORKDIR /app
 
-# The 'target' directory is created by Maven in the build stage.
-# We copy the executable JAR file. We assume the JAR starts with 'student-management-' 
-# based on the project name and rename it to 'app.jar' for simplicity.
-# If your Maven artifact ID is different, please adjust 'student-management-*.jar' below.
-COPY target/student-management-*.jar app.jar
+# Copy the pom.xml file and download dependencies
+# This leverages Docker's layer caching for faster builds if pom.xml doesn't change
+COPY pom.xml .
+RUN mvn dependency:go-offline
+
+# Copy the rest of the application source code
+COPY src ./src
+
+# Package the application into a single executable JAR file
+RUN mvn package -DskipTests
+
+# --- STAGE 2: Create the final, minimal image (using JRE) ---
+# FIX: Using the reliable Eclipse Temurin JRE image instead of deprecated OpenJDK tags
+FROM eclipse-temurin:17-jre-focal AS final
+
+# Set the working directory for the final application
+WORKDIR /app
+
+# Copy the built JAR file from the build stage
+# The JAR name is assumed to be 'target/student-management-0.0.1-SNAPSHOT.jar'
+# Adjust the JAR name below if your Maven build produces a different name
+COPY --from=build /app/target/*.jar app.jar
 
 # Expose the port the Spring Boot application runs on (default is 8080)
 EXPOSE 8080
 
-# Define the command to run the application when the container starts
+# The command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
-
-# Note: You can optionally add health checks or use multi-stage builds for smaller images.
