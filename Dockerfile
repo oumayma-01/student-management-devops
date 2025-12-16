@@ -1,4 +1,4 @@
-#test final hopefulllyyyyyyy :( finaaal 3 !!!!
+#test final hopefulllyyyyyyy :( finaaal 3 !!!! , new tests : 3..2...1 GO
 # ------------------------------------
 # Stage 1: Build the application (using JDK)
 # ------------------------------------
